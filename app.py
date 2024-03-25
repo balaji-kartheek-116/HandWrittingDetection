@@ -89,7 +89,7 @@ def main():
             st.success(f"Generated texts saved to {doc_path}")
 
         # Visualize the detected text regions
-        visualize_text_detection(image, generated_texts)
+        #visualize_text_detection(image, generated_texts)
 
 if __name__ == "__main__":
     main()
