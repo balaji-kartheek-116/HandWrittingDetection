@@ -7,6 +7,64 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import numpy as np
 
+# Define correct username and password
+CORRECT_USERNAME = "user"
+CORRECT_PASSWORD = "password"
+
+# Function to authenticate user
+def authenticate(username, password):
+    return username == CORRECT_USERNAME and password == CORRECT_PASSWORD
+
+# Streamlit app
+def main():
+    st.title("Handwriting Detection with Streamlit")
+
+    # Authentication
+    if 'username' not in st.session_state:
+        st.session_state.username = st.text_input("Username")
+    if 'password' not in st.session_state:
+        st.session_state.password = st.text_input("Password", type="password")
+
+    if st.button("Login"):
+        if authenticate(st.session_state.username, st.session_state.password):
+            st.session_state.authenticated = True
+        else:
+            st.error("Incorrect username or password")
+    
+    # If authenticated, proceed with the application
+    if st.session_state.get("authenticated", False):
+        # Logout button
+        if st.button("Logout"):
+            st.session_state.authenticated = False
+            st.session_state.username = ""
+            st.session_state.password = ""
+
+        # Upload image
+        uploaded_file = st.file_uploader("Upload Image", type=["jpg", "jpeg", "png"])
+
+        if uploaded_file is not None:
+            # Display the uploaded image
+            image = Image.open(uploaded_file)
+            st.image(image, caption="Uploaded Image", use_column_width=True)
+
+            # Process the uploaded image
+            generated_texts = process_image(image)
+
+            # Display the detected and generated texts
+            st.subheader("Detected Texts:")
+            st.write(' '.join(generated_texts))
+
+            # Save the generated texts to a Word document
+            if st.button("Save to Word Document"):
+                doc_path = 'Generated_Texts.docx'
+                doc = Document()
+                doc.add_paragraph(' '.join(generated_texts))
+                doc.save(doc_path)
+                st.success(f"Generated texts saved to {doc_path}")
+
+            # Visualize the detected text regions
+            #visualize_text_detection(image, generated_texts)
+
 # Function to generate text from a given image region
 def generate_text(image_region):
     # Load TrOCR processor
@@ -60,36 +118,6 @@ def visualize_text_detection(image, generated_texts):
 
     plt.axis('off')
     st.pyplot(plt)
-
-# Streamlit app
-def main():
-    st.title("Handwriting Detection with Streamlit")
-
-    # Upload image
-    uploaded_file = st.file_uploader("Upload Image", type=["jpg", "jpeg", "png"])
-
-    if uploaded_file is not None:
-        # Display the uploaded image
-        image = Image.open(uploaded_file)
-        st.image(image, caption="Uploaded Image", use_column_width=True)
-
-        # Process the uploaded image
-        generated_texts = process_image(image)
-
-        # Display the detected and generated texts
-        st.subheader("Detected Texts:")
-        st.write(' '.join(generated_texts))
-
-        # Save the generated texts to a Word document
-        if st.button("Save to Word Document"):
-            doc_path = 'Generated_Texts.docx'
-            doc = Document()
-            doc.add_paragraph(' '.join(generated_texts))
-            doc.save(doc_path)
-            st.success(f"Generated texts saved to {doc_path}")
-
-        # Visualize the detected text regions
-        #visualize_text_detection(image, generated_texts)
 
 if __name__ == "__main__":
     main()
